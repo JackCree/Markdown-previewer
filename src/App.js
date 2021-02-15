@@ -1,86 +1,154 @@
 import React from 'react';
-import Badge from "react-bootstrap/Badge";
-let marked = require("marked");
+import marked from 'marked';
 
-export default class App extends React.Component {
+const projectName = 'markdown-previewer';
+
+marked.setOptions({
+  break: true
+});
+
+const renderer = new marked.Renderer();
+renderer.link = function(href, title, text) {
+  return `<a target="_blank" href="${href}">${text}` + `</a>`;
+};
+
+class App extends React.Component {
   constructor(props){
-    super(props)
+    super(props) 
+    //declaration of the variable
     this.state = {
-      markdown:  `
-  # React Markdown Previewer!
-  ## This is a sub-heading...
-      
-  Or... wait for it... **_both!_**
-    
-  And feel free to go crazy ~~crossing stuff out~~.
-        
-  There's also [links](https://ashusingh.me), and
-  > Block Quotes!       
-    
-      `,
+      markdown: placeholder,
+      editorMaximized: false,
+      previewMaximized: false
     };
+    //Declaration of the methods
+    this.handleChange = this.handleChange.bind(this);
+    this.handleEditorMaximize = this.handleEditorMaximize.bind(this);
+    this.handlePreviewMaximize = this.handlePreviewMaximize.bind(this);
   }
-  updateMarkdown(markdown) {
-      this.setState({ markdown });
-    }
-
-  render(){
-    var inputStyle = {
-      width: "400px",
-      height: "50vh",
-      marginLeft: "auto",
-      marginRight:"auto",
-      padding:"10px"
-    };
-    var outputStyle = {
-      width: "400px",
-      height: "50vh",
-      backgroundColor: "#DCDCDC",
-      marginLeft: "auto",
-      marginRight: "auto",
-      padding: "10px"
-    };
+  //Declaration of the functions : 1. Get the value in the textarea to markdown
+  //                               2. Change the boolean value of editorMaximized
+  //                               3. Change the boolean value of previewMaximized
+  handleChange(e){
+    this.setState({
+      markdown: e.target.value
+    });
+  }
+  handleEditorMaximize(){
+    this.setState({
+      editorMaximized: !this.state.editorMaximized
+    });
+  }
+  handlePreviewMaximize(){
+    this.setState({
+      previewMaximized: !this.state.previewMaximized
+    });
+  }
+  //Modelization of the component
+  render(){ 
+    const classes = this.state.editorMaximized 
+      ? ['editorWrap maximized', 'previewWrap hide', 'fa fa-compress'] 
+      : this.state.previewMaximized
+        ? ['editorWrap hide', 'previewWrap maximized', 'fa fa-compress']
+        : ['editorWrap', 'previewWrap', 'fa fa-arrows-alt'];    
 
     return(
-      <div className="App">
-        <div className="container">
-          <div className="row mt-4">
-            <div className="col text-center">
-              <h1><Badge className="text-align-center" variant="light">Markdown Previewer</Badge></h1>
-            </div>
-          </div>
-          <div className="row mt-4">
-            <div className="col-md-6">
-              <div className="col text-center">
-                <h4>
-                  <Badge className="text-align-center" variant="secondary">
-                    Markdown Input
-                  </Badge>
-                </h4>
-              </div>
-              <div className="mark-input" style={inputStyle}>
-                <textarea className="input" style={inputStyle} value={this.state.markdown} onChange={(e) => {
-                  this.updateMarkdown(e.target.value);
-                }}></textarea>
-              </div>
-            </div>
-
-            <div className="col-md-6">
-              <div className="col text-center">
-                <h4>
-                  <Badge className="text-align-center" variant="secondary">
-                    Preview
-                  </Badge>
-                </h4>
-              </div>
-              <div style={outputStyle} dangerouslySetInnerHTML={{
-                __html: marked(this.state.markdown),
-              }}>
-              </div>
-            </div>
-          </div>
+      <div>
+        <div className={classes[0]}>
+          <Toolbar 
+            icon={classes[2]}
+            onClick = {this.handleEditorMaximize}
+            text='Editor' 
+          />
+          <Editor markdown={this.state.markdown} onChange={this.handleChange} />
+        </div>
+        <div className='converter'/>
+        <div className={classes[1]}>
+          <Toolbar 
+            icon={classes[2]}
+            onClick={this.handlePreviewMaximize}
+            text='Previewer'
+          />
+          <Preview markdown= {this.state.markdown} />
         </div>
       </div>
     );
   }
 }
+
+const Toolbar = props => {
+  return (
+    <div className='toolbar'>
+      <i className='fa fa-free-code-camp' title='no-stab-dub-sack' />
+      {props.text}
+      <i className={props.icon} onClick={props.onClick} />
+    </div>
+  );
+};
+
+const Editor = props => {
+  return (
+    <textarea
+      id='editor'
+      onChange={props.onChange}
+      type='text'
+      value={props.markdown}
+    />
+  );
+};
+
+const Preview = props => {
+  return (
+    <div
+      dangerouslySetInnerHTML={{
+        __html: marked(props.markdown, { renderer: renderer })
+      }}
+      id='preview'
+    />
+  );
+};
+
+const placeholder = `# Welcome to my React Markdown Previewer!
+
+## This is a sub-heading...
+### And here's some other cool stuff:
+
+Heres some code, \`<div></div>\`, between 2 backticks.
+
+\`\`\`
+// this is multi-line code:
+
+function anotherExample(firstLine, lastLine) {
+  if (firstLine == '\`\`\`' && lastLine == '\`\`\`') {
+    return multiLineCode;
+  }
+}
+\`\`\`
+
+You can also make text **bold**... whoa!
+Or _italic_.
+Or... wait for it... **_both!_**
+And feel free to go crazy ~~crossing stuff out~~.
+
+There's also [links](https://www.freecodecamp.com), and
+> Block Quotes!
+
+And if you want to get really crazy, even tables:
+
+Wild Header | Crazy Header | Another Header?
+------------ | ------------- | -------------
+Your content can | be here, and it | can be here....
+And here. | Okay. | I think we get it.
+
+- And of course there are lists.
+  - Some are bulleted.
+     - With different indentation levels.
+        - That look like this.
+
+
+1. And there are numbererd lists too.
+1. Use just 1s if you want!
+1. And last but not least, let's not forget embedded images:
+
+`;
+export default App;
