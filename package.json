@@ -1,4 +1,5 @@
 {
+  "homepage": "https://jackcree.github.io/Markdown-previewer/",
   "name": "markdown-previewer",
   "version": "0.1.0",
   "private": true,
@@ -43,6 +44,5 @@
   },
   "devDependencies": {
     "gh-pages": "^3.1.0",
-    "homepage": "https://jackcree.github.io/Markdown-previewer/"
   }
 }
